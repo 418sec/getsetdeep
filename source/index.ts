@@ -18,6 +18,22 @@ interface Model {
 	set(attrs: IndexedObject, opts?: SetterOptions): any
 }
 
+const ILLEGAL_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+const isIllegalKey = (key: string) => ILLEGAL_KEYS.has(key)
+
+const isProtoPath = (path: string[] | string) => Array.isArray(path)
+  ? path.some(isIllegalKey)
+  : typeof path === "string"
+  ? isIllegalKey(path)
+  : false
+
+const disallowProtoPath = (path: string[] | string) => {
+  if (isProtoPath(path)) {
+    throw new Error(`Unsafe path encountered: ${path.toString()}`)
+  }
+}
+
 /** Get a nested value within the subject */
 export function getDeep(
 	subject: IndexedObject | Model,
@@ -41,7 +57,7 @@ export function getDeep(
 	// Return if we are not a delveable type like object or function
 	if (!isObject(subject) && !isFunction(subject)) {
 		return
-	}
+  }
 
 	// Get the deepmost item
 	for (let i = 0, n = keys.length - 1; i < n; ++i) {
@@ -82,6 +98,8 @@ export function setDeep(
 	if (keys.length === 0) {
 		return
 	}
+  
+  disallowProtoPath(keys)
 
 	// Get the deepmost item
 	for (let i = 0, n = keys.length - 1; i < n; ++i) {
