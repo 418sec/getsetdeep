@@ -2,7 +2,7 @@
 'use strict'
 
 // Import
-import { equal } from 'assert-helpers'
+import { equal, expectThrowViaFunction } from 'assert-helpers'
 import kava from 'kava'
 import { getDeep, setDeep } from './index.js'
 import Backbone from 'backbone'
@@ -87,6 +87,21 @@ kava.suite('getsetdeep', function (suite, test) {
 		test('set nested undefined value', function () {
 			equal(setDeep(src, 'a.z.x.y', 'yay'), 'yay')
 			equal(getDeep(src, 'a.z.x.y'), 'yay')
-		})
+    })
+    
+    test('set throws when unsafe path encountered', function () {
+      const getErrorMsg = function(path: string[]) {
+        return "Unsafe path encountered: " + path;
+      }
+      const raiseError = function(obj: object, keys: string, value: string) {
+        return function() {
+          setDeep(obj, keys, value)
+          throw new Error('Test failed')
+        }
+      }
+      expectThrowViaFunction(getErrorMsg(['__proto__', 'polluted']), raiseError(src, '__proto__.polluted', 'Polluted'))
+      expectThrowViaFunction(getErrorMsg(['constructor', 'prototype', 'polluted']), raiseError(src, 'constructor.prototype.polluted', 'Polluted'))
+      expectThrowViaFunction(getErrorMsg(['prototype', 'polluted']), raiseError(Object, 'prototype.polluted', 'Polluted'))
+    })
 	})
 })
