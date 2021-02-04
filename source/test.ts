@@ -88,5 +88,10 @@ kava.suite('getsetdeep', function (suite, test) {
 			equal(setDeep(src, 'a.z.x.y', 'yay'), 'yay')
 			equal(getDeep(src, 'a.z.x.y'), 'yay')
 		})
+
+		test('should not set object prototype', function () {
+			equal(setDeep(src, '__proto__.polluted', true), true)
+			equal(getDeep(src, '__proto__.polluted'), undefined)
+		})
 	})
 })

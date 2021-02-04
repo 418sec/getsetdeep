@@ -86,6 +86,9 @@ export function setDeep(
 	// Get the deepmost item
 	for (let i = 0, n = keys.length - 1; i < n; ++i) {
 		const key = keys[i]
+		if (isPrototypePolluted(key)) {
+			continue
+		}
 		const tmp = getDeep(subject, key)
 		if (tmp) {
 			subject = tmp
@@ -114,4 +117,9 @@ export function setDeep(
 
 	// Return
 	return result
+}
+
+/** Blacklist certain keys to prevent Prototype Pollution */
+function isPrototypePolluted(key: any): boolean {
+	return ['__proto__', 'constructor', 'prototype'].includes(key)
 }
